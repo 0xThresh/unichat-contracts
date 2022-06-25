@@ -2,59 +2,58 @@
 pragma solidity ^0.8.14; 
 
 contract Unichat {
-    // data 
-    uint256 fixedPaymentAmount = 1 ether; // 1000000000000000 this is in .001 ETH in wei 
-
-    mapping(string => address) hashSender; 
-    mapping(address => uint256) balance;
+    // variables
+    uint256 FixedPaymentAmount = 1000000000000000000; // 1 eth in wei
+    mapping(string => address) public submitters; 
+    mapping(address => uint256) public balances;
 
     // events
-    event newMessage(string _hash);  
+    event NewEntry(string _hash);  
 
-    // this needs to be executed before addData() can be called
-    function fundContract() payable public {
-        require(msg.value == fixedPaymentAmount); 
-        hashSender['initial'] = msg.sender;
+    // this needs to be executed before AddData() can be called
+    function FundContract() payable public returns(bool) {
+        require(msg.value == FixedPaymentAmount); 
+        submitters['initial'] = msg.sender;
+        return true;
     }
         
 
-    function addData(string memory _oldHash, string memory _newHash) payable public { // could add payment as an option          
-
-        // require that the sender has the appopriate amount of eth
-        require(address(msg.sender).balance >= fixedPaymentAmount, "Address does not contain enough ETH to stake.");
+    function AddData(string memory _oldHash, string memory _newHash) payable public returns(bool) {         
+        require((msg.value) >= FixedPaymentAmount, "Not enough ETH sent to stake.");
+        require(bytes20(submitters[_oldHash]) != 0, "Another hash has been submitted by another node.");
         
         
-        // take the ETH to store 
-        (bool storeSuccess,) = msg.sender.call{value: fixedPaymentAmount}("");
+        // receive ETH to be staked 
+        (bool storeSuccess,) = msg.sender.call{value: FixedPaymentAmount}("");
         require(storeSuccess, "Transfer IN failed.");
 
         
-        // update hashSender with _newHash to msg.sender 
-        hashSender[_newHash] = msg.sender;
+        // update submitters with _newHash to msg.sender 
+        submitters[_newHash] = msg.sender;
 
 
-        // add the freed up balance to the balance map 
-        balance[hashSender[_oldHash]] + fixedPaymentAmount;
+        // add the freed up balance to the balances map 
+        balances[submitters[_oldHash]] += FixedPaymentAmount;
 
-        emit newMessage(_newHash);
+        // clean up submitters[_oldHash]]
+        delete submitters[_oldHash];
+
+        emit NewEntry(_newHash);
+
+        return true; 
     }
 
-    /*function viewData(string memory _oldHash) public pure returns(string memory) {
-        return _oldHash;
-    }*/
 
-    function withdrawFunds(address payable _address) external {
+    function WithdrawFunds(address payable _address) external returns(bool) {
         // sends back ETH to anyone whose funds have been freed up after another address submits hashes
-        bool locked;
-        require(!locked, "Reentrant call detected!");
-        
-        locked = true;
-        
+        uint256 currentBalance;
+        currentBalance = balances[_address];
+        balances[_address] = 0;
        (bool success,) =    
-        _address.call{value: balance[_address]}('');
+        _address.call{value: currentBalance}('');
         
         require(success, "Transfer OUT failed.");
-        
-        locked = false;
+    
+        return true;
     }
 }
