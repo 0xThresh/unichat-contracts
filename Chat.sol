@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: no
 pragma solidity ^0.8.14; 
 
 contract Unichat {
@@ -20,6 +20,7 @@ contract Unichat {
 
     function AddData(string memory _oldHash, string memory _newHash) payable public returns(bool) {         
         require((msg.value) >= FixedPaymentAmount, "Not enough ETH sent to stake.");
+        require(bytes20(submitters[_oldHash]) != 0, "Another hash has been submitted by another node.");
         
         
         // receive ETH to be staked 
