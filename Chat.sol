@@ -44,7 +44,7 @@ contract Unichat {
     }
 
 
-    function WithdrawFunds(address payable _address) external returns(bool) {
+    function withdrawFunds(address payable _address) external returns(bool) {
         // sends back ETH to anyone whose funds have been freed up after another address submits hashes
         uint256 currentBalance;
         currentBalance = balances[_address];
