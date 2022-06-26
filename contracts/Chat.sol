@@ -18,7 +18,7 @@ contract Unichat {
     }
         
 
-    function addData(string memory _oldHash, string memory _newHash) payable public returns(bool) {         
+    function addData(string memory _oldHash, string memory _newHash) payable public returns(bool) {          
         require((msg.value) >= fixedPaymentAmount, "Not enough ETH sent to stake.");
         require(bytes20(submitters[_oldHash]) != 0, "Another hash has been submitted by another node.");
         
@@ -57,3 +57,5 @@ contract Unichat {
         return true;
     }
 }
+
+
